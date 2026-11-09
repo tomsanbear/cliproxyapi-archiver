@@ -1,14 +1,17 @@
 ---
 id: walking-skeleton
 title: "Walking skeleton: one real proxy segment to R2 and back through DataFusion"
-status: todo
+status: review
 priority: p1
 dependencies: [wal-frame-spec]
 related: []
 scopes: [app]
-shared_scopes: [wal, store, query, project/tickets]
+shared_scopes: [wal, store, query, project/tickets, docs]
 paths: []
 tags: [archive, mvp]
+claimed_from: todo
+assignee: opus-skeleton
+lease_expires_at: 1794250113
 ---
 ## Goal
 
