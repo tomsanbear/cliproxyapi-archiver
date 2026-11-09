@@ -1,0 +1,49 @@
+schema_version = 1
+tickets_dir = "tickets"
+default_base = "main"
+
+# Defaults are written into ticket frontmatter; explicit exclusive scopes win.
+[defaults]
+shared_scopes = ["project/tickets"]
+
+[output]
+comments = "auto"
+comment_source = "all"
+
+[language]
+# Auto-detected a cargo workspace; the guard expands a changed crate
+# through the cargo reverse-dependency graph.
+backend = "rust"
+# reverse_dep_expansion = false  # default true; off = path/crate-only,
+# handy when a foundational crate makes transitive collisions noisy.
+
+# One crate, scoped by module. Files that do not exist yet make `doctor` warn until they do.
+[scopes]
+"project/tickets" = ["tickets/**", "ticketsplease.toml", ".ticketsplease/**"]
+"spec" = ["docs/archive-wal-format.md", "docs/WAL-SPEC-SOURCE", "fixtures/**", "scripts/sync-fixtures*"]
+"wal" = ["src/wal/**", "src/wal.rs"]
+"split" = ["src/split/**", "src/split.rs"]
+"store" = ["src/store/**", "src/store.rs", "src/schema.rs"]
+"query" = ["src/query/**", "src/query.rs", "queries/**"]
+"deploy" = ["deploy/**", "scripts/**", "src/daemon.rs"]
+"docs" = ["README.md", "docs/**"]
+"app" = ["src/main.rs", "src/cli.rs", "src/config.rs", "Cargo.toml", "Cargo.lock", "rust-toolchain.toml"]
+
+[scope_crates]
+
+# Name a forked/external dependency (pinned via `git = … rev = …`) as a scope.
+# The guard flags a branch that bumps the pin (matched by `repo`) or edits an
+# in-tree fork `paths` glob, against tickets declaring the same scope.
+[external_scopes]
+# "sqlparser-fork" = { repo = "tomsanbear/sqlparser", paths = [] }
+
+# Opt-in coupling cost for a `related` link. Default 0 = related stays
+# invisible to tracks/next/lanes/why. A positive value is gated by --max-overlap.
+[scheduler]
+# related_weight = 0
+
+# Where the local skill symlink is recorded as ignored when git does not already
+# ignore it: "gitignore" (this repo's .gitignore) or "exclude" (.git/info/exclude,
+# clone-local and never committed, e.g. in a fork whose .gitignore is upstream's).
+[skill]
+link_ignore = "exclude"
