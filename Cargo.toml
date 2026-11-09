@@ -2,5 +2,41 @@
 name = "cliproxyapi-archiver"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.95"
+license = "MIT"
+description = "Archives CLIProxyAPI conversation turns from the proxy's WAL into Vortex files on R2"
 
+[[bin]]
+name = "skeleton"
+path = "src/main.rs"
+
+# The query stack is pinned to the exact versions vortex-datafusion 0.93.0 is built and locked
+# against (vortex-data/vortex tag 0.93.0, Cargo.lock). Bump them together, never one at a time.
 [dependencies]
+# chrono-tz: `ts` carries the named timezone "UTC", which arrow can only display or cast with it.
+arrow = { version = "=59.3.2", default-features = false, features = ["chrono-tz", "prettyprint"] }
+datafusion = { version = "=55.2.0", default-features = false, features = [
+    "sql",
+    "datetime_expressions",
+    "nested_expressions",
+    "string_expressions",
+    "unicode_expressions",
+] }
+object_store = { version = "=0.13.2", default-features = false, features = ["aws", "fs"] }
+vortex = { version = "=0.93.0", features = ["object_store", "tokio"] }
+vortex-datafusion = "=0.93.0"
+tokio = { version = "1.54.1", features = ["macros", "rt-multi-thread"] }
+
+anyhow = "1.0.104"
+base64 = "0.22.1"
+chrono = { version = "0.4.45", default-features = false, features = ["std"] }
+clap = { version = "4.6.7", features = ["derive", "env"] }
+crc32c = "0.6"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+url = "2.5.8"
+zstd = "0.14.3"
+
+[dev-dependencies]
+sha2 = "0.11.1"
+tempfile = "3.27.0"
