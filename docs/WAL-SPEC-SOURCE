@@ -1,0 +1,5 @@
+repo: https://github.com/tomsanbear/CLIProxyAPI
+branch: local/maintained
+commit: 6155e59ebba5c1f4e24665de14a65395006dcdc0
+spec: docs/archive-wal-format.md
+fixtures: internal/archive/testdata/wal/

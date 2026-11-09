@@ -1,7 +1,7 @@
 ---
 id: wal-frame-spec
 title: Adopt the CLIProxyAPI archive WAL spec and vendor its golden fixtures
-status: todo
+status: done
 priority: p1
 dependencies: []
 related: []
