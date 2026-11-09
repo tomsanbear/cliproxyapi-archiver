@@ -18,7 +18,7 @@ Evidence that the archive is complete and exact after a day of real traffic.
 
 - Run proxy capture and archiver for 24 hours.
 - Row count of `turns` equals the proxy's request count for the day (from its logs) minus counted drops.
-- For a random sample of 50 request ids, `reassemble` equals the inbound body the proxy recorded for that id in a temporary request-log capture; response bytes equal what the client received.
+- For a random sample of 50 request ids, `reassemble` (or `request_raw`) equals the body the client sent, and `response_raw` equals the bytes the client received, both taken from a client-side capture (a logging shim between Claude Code and the proxy). The proxy's own request-log is not a valid oracle because it drops stream chunks under load.
 - Cache hit rate per account from the archive matches the proxy's `measure-cache-hit-rate` ticket output.
 - Document the results in `docs/verification-<date>.md`.
 

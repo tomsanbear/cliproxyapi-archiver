@@ -1,9 +1,9 @@
 ---
 id: wal-reader
-title: "WAL reader: discover segments, decode frames, drain with ring awareness"
+title: "WAL reader: discover segments, decode frames per the spec's damage rules, drain oldest-first"
 status: todo
 priority: p1
-dependencies: [wal-frame-spec]
+dependencies: [walking-skeleton]
 related: []
 scopes: [wal]
 shared_scopes: [project/tickets]
@@ -16,12 +16,11 @@ A reader that turns the proxy's spool directory into a stream of decoded turn re
 
 ## Work
 
-- List `seg-*.zst`, parse sequence numbers, treat the highest as in-progress (never read it).
-- Drain oldest-first; when more than the high-water count (12) of completed segments exist, drain newest-first until back under it. Expose the policy as a pure function over the listing for testing.
-- Decode: zstd stream → `u32 length` + `u8 version` + payload frames; skip a truncated tail; read an unterminated stream to the last complete block; count and skip unknown versions.
-- Segment lifecycle: yield `(segment, Vec<Turn>)`; `confirm(segment)` unlinks it; `ENOENT` on unlink is success.
-- Write `archiver-status.json` into the spool dir after each confirm: last segment, frames read, last upload time, errors. The proxy's management panel shows it.
+- List `seg-*.wal` (completed segments only; never read, delete or rename `.wal.open`), parse the 12-digit sequence numbers, drain in ascending order. Expose the ordering as a pure function over the listing for testing.
+- Decode per spec sections 5 and 6: 20-byte little-endian header (`CPAW`, version, flags, payload_len, record_len, crc32c), per-frame zstd payload, three length-prefixed record sections. Damage rules exactly as specified: truncated tail ends quietly; bad magic or `payload_len` over limit ends as corrupt; unknown version, CRC mismatch and bad record are skipped and counted. Readers ignore unknown flag bits.
+- Segment lifecycle: yield `(segment, Vec<Record>)` plus the read stats; `confirm(segment)` unlinks it; `ENOENT` on unlink is success.
+- Keep the read stats for the `status` subcommand (ticket `launchd-deploy`).
 
 ## Acceptance
 
-Tests over the vendored fixtures and over synthetic spools: ordering under and over high-water; a segment deleted by the proxy mid-run is tolerated; a crash between upload and confirm re-reads the segment and the writer stage dedupes by `request_id`+`attempt`.
+Tests over the vendored fixtures reproduce `manifest.json` exactly (counts and section hashes for every `.wal`, `.wal.open` ignored); a segment deleted by the proxy mid-run is tolerated; a crash between upload and confirm re-reads the segment and the writer stage's per-segment idempotent upload makes the replay harmless.

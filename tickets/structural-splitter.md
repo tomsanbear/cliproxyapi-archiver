@@ -3,7 +3,7 @@ id: structural-splitter
 title: "Byte-exact structural splitter: slice system, tools and messages; hash; reassemble"
 status: todo
 priority: p1
-dependencies: [wal-frame-spec]
+dependencies: [vortex-writer-upload]
 related: []
 scopes: [split]
 shared_scopes: [project/tickets]
@@ -17,7 +17,8 @@ Given a request body, produce a skeleton plus an ordered list of byte slices for
 ## Work
 
 - A JSON tokenizer that locates top-level keys and array element boundaries without re-encoding (byte offsets only). No `serde_json::Value` round trip on the content.
-- Per-format slice points: Claude Messages `system` (string or each block), `tools[i]`, `messages[i]`; OpenAI chat `messages[i]`, `tools[i]`; Responses `instructions`, `input[i]`, `tools[i]`; Gemini `systemInstruction`, `tools[i]`, `contents[i]`. Format detected from the frame's `request.format` field, not guessed.
+- Claude Messages first (it is nearly all of the owner's traffic): slice `system` (string or each block), `tools[i]`, `messages[i]`. Every other `request.format` is stored whole in `request_raw` for now; OpenAI chat (`messages[i]`, `tools[i]`), Responses (`instructions`, `input[i]`, `tools[i]`) and Gemini (`systemInstruction`, `tools[i]`, `contents[i]`) follow the same pattern in later tickets. Format comes from the frame's `request.format` field, not guessed.
+- Writing the split form means `request_skeleton` + `request_parts` populated and `request_raw` null for that row; rows written before the splitter existed keep `request_raw`. Both shapes are valid forever; `reassemble` handles either.
 - Skeleton encoding: the original bytes with each slice replaced by a placeholder token that cannot occur in JSON text; `reassemble(skeleton, slices)` is the inverse.
 - Each slice: `kind` (system, tool, message, instructions, content), `role` read from the slice's first key when present, blake3 hash.
 - Decline (return raw) on: unknown format, invalid JSON, nesting the tokenizer does not understand, bodies over a size limit.
